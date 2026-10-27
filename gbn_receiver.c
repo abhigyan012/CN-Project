@@ -4,7 +4,10 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
+#include "../include/channel.h"
+
 #define DATA_SIZE 512
+#define ACK_LOSS 0.20
 
 typedef struct {
     int seq;
@@ -18,7 +21,7 @@ unsigned int calculate_checksum(char *data, int len) {
     unsigned int sum = 0;
 
     for (int i = 0; i < len; i++) {
-        sum += (unsigned char)data[i]; 
+        sum += (unsigned char)data[i];
     }
 
     return sum;
@@ -129,18 +132,34 @@ int main() {
 
         int ack = expected_seq - 1;
 
-        sendto(
-            sockfd,
-            &ack,
-            sizeof(ack),
-            0,
-            (struct sockaddr *)&client_addr,
-            client_len
-        );
+        if (should_drop(ACK_LOSS)) {
 
-        printf("Sent cumulative ACK%d\n\n", ack);
+            printf(
+                "Channel emulator: cumulative ACK%d dropped.\n\n",
+                ack
+            );
+        }
+        else {
 
-        if (packet.is_last && packet.seq == expected_seq - 1) {
+            sendto(
+                sockfd,
+                &ack,
+                sizeof(ack),
+                0,
+                (struct sockaddr *)&client_addr,
+                client_len
+            );
+
+            printf(
+                "Sent cumulative ACK%d\n\n",
+                ack
+            );
+        }
+
+        if (
+            packet.is_last &&
+            packet.seq == expected_seq - 1
+        ) {
             break;
         }
     }
@@ -148,7 +167,9 @@ int main() {
     fclose(file);
     close(sockfd);
 
-    printf("Go-Back-N file received successfully.\n");
+    printf(
+        "Go-Back-N file received successfully.\n"
+    );
 
     return 0;
 }

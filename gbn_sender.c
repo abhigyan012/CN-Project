@@ -11,6 +11,7 @@
 #define WINDOW_SIZE 4
 #define MAX_PACKETS 1000
 #define PACKET_LOSS 0.20
+#define CORRUPTION_RATE 0.10
 
 typedef struct {
     int seq;
@@ -83,7 +84,8 @@ int main() {
 
     printf("Total packets: %d\n", total_packets);
     printf("Window size: %d\n", WINDOW_SIZE);
-    printf("Packet loss: %.0f%%\n\n", PACKET_LOSS * 100);
+    printf("Packet loss: %.0f%%\n", PACKET_LOSS * 100);
+    printf("Corruption rate: %.0f%%\n\n", CORRUPTION_RATE * 100);
 
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -119,15 +121,32 @@ int main() {
         ) {
 
             if (should_drop(PACKET_LOSS)) {
+
                 printf(
                     "Channel emulator: packet %d dropped.\n",
                     packets[next_seq].seq
                 );
             }
             else {
+
+                Packet send_packet = packets[next_seq];
+
+                if (
+                    should_corrupt(CORRUPTION_RATE) &&
+                    send_packet.data_len > 0
+                ) {
+
+                    send_packet.data[0] ^= 1;
+
+                    printf(
+                        "Channel emulator: packet %d corrupted.\n",
+                        send_packet.seq
+                    );
+                }
+
                 sendto(
                     sockfd,
-                    &packets[next_seq],
+                    &send_packet,
                     sizeof(Packet),
                     0,
                     (struct sockaddr *)&receiver_addr,
@@ -136,8 +155,8 @@ int main() {
 
                 printf(
                     "Sent packet %d (%d bytes)\n",
-                    packets[next_seq].seq,
-                    packets[next_seq].data_len
+                    send_packet.seq,
+                    send_packet.data_len
                 );
             }
 
@@ -156,6 +175,7 @@ int main() {
         );
 
         if (n < 0) {
+
             printf(
                 "\nTimeout! Resending from packet %d\n\n",
                 base
@@ -164,9 +184,11 @@ int main() {
             next_seq = base;
         }
         else {
+
             printf("Received ACK%d\n", ack);
 
             if (ack >= base) {
+
                 base = ack + 1;
 
                 printf(
