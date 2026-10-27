@@ -1,0 +1,37 @@
+The sender starts by opening input.txt in binary read mode using fopen("input.txt", "rb"). This means the sender will read the contents of the file as raw bytes. We use binary mode because it makes the logic more general and avoids depending on text formatting. If the file cannot be opened, the program prints an error and stops.
+
+Next, the sender creates a UDP socket using socket(AF_INET, SOCK_DGRAM, 0). AF_INET means IPv4, and SOCK_DGRAM means UDP. After creating the socket, we set a receive timeout of 5 seconds using SO_RCVTIMEO. This timeout is important because after sending a packet, the sender waits for an acknowledgement. If no ACK arrives within 5 seconds, the sender assumes something went wrong and sends the same packet again.
+
+We then define the address of the receiver. The IP address is 127.0.0.1, which means the sender and receiver are running on the same computer, and the receiver listens on port 8080.
+
+The sender does not send the whole file at once. Instead, it reads the file in chunks of 512 bytes. That is why we defined DATA_SIZE as 512. Each chunk is placed inside a Packet structure. The packet contains four main things: the sequence number, the amount of valid data in the packet, a flag telling whether this is the last packet, and the actual file data.
+
+The sequence number is either 0 or 1, just like in the Stop-and-Wait version we already built. The sender begins with sequence number 0. After a packet is successfully acknowledged, the sender changes the sequence number using seq = 1 - seq, so it alternates between 0 and 1.
+
+The data_len field tells the receiver how many bytes of the data array are actually useful. For example, the array can hold 512 bytes, but the final packet might contain only 180 bytes. In that case, data_len will be 180, so the receiver writes only those 180 bytes.
+
+The is_last field tells the receiver whether this is the final piece of the file. If fread() reads fewer than 512 bytes, we know we have reached the end of the file, so is_last is set to 1. Otherwise, it remains 0.
+
+Once a packet is ready, the sender enters the Stop-and-Wait loop. It sends the packet using sendto() and then waits for an acknowledgement using recvfrom(). If the ACK does not arrive within 5 seconds, recvfrom() times out and the sender prints a timeout message. Because the sender has not moved on to the next chunk yet, the same packet is sent again.
+
+If the ACK arrives and its value matches the sequence number of the packet that was sent, the sender knows the packet was successfully received. It then changes the sequence number from 0 to 1 or from 1 to 0, and reads the next chunk of the file.
+
+The receiver works in the opposite way. It opens received.txt in binary write mode using fopen("received.txt", "wb"). This file will contain the reconstructed version of the original file after all packets are received.
+
+The receiver creates its own UDP socket and binds it to port 8080. The bind() function is important because it tells the operating system that this program wants to receive UDP packets arriving on port 8080.
+
+The receiver starts with expected_seq = 0, meaning the first valid packet it expects should have sequence number 0. It then continuously waits for packets using recvfrom().
+
+When a packet arrives, the receiver checks whether the packet's sequence number matches expected_seq. If it matches, the receiver treats the packet as new data. It writes the packet's contents into received.txt using fwrite(), but it writes only packet.data_len bytes.
+
+After successfully writing the packet, the receiver changes expected_seq. If it accepted packet 0, it now expects 1. If it accepted packet 1, it now expects 0.
+
+If the received sequence number does not match expected_seq, the receiver treats the packet as a duplicate. This usually happens when the original packet was received correctly but its ACK was lost. The sender times out and sends the same packet again. The receiver must not write that data a second time, so it simply ignores the duplicate.
+
+Even if the packet is a duplicate, the receiver still sends the ACK again. This is important because the sender may have retransmitted the packet only because the previous ACK was lost.
+
+The receiver sends the acknowledgement back using sendto(). The ACK value is simply the sequence number of the packet that was received. So packet 0 gets ACK 0, and packet 1 gets ACK 1.
+
+Finally, when the receiver gets a packet where is_last is 1, it knows that the file transfer is complete. It exits the loop, closes received.txt, closes the socket, and prints that the file was received successfully.
+
+So the complete idea is: the sender reads one 512-byte piece of the file, sends it, waits for the correct ACK, retransmits if necessary, and only then moves to the next piece. The receiver accepts only the sequence number it currently expects, writes new data to the file, ignores duplicates, and acknowledges every received packet. This is how we are currently implementing reliable file transfer using Stop-and-Wait over UDP.
