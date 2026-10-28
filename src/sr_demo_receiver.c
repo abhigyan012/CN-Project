@@ -4,9 +4,13 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
+#include "../include/channel.h"
+
 #define DATA_SIZE 512
 #define WINDOW_SIZE 4
 #define MAX_PACKETS 1000
+#define ACK_LOSS 0.20
+#define FIN_SEQ -1
 
 typedef struct {
     int seq;
@@ -30,14 +34,12 @@ int main() {
     int sockfd;
     int base = 0;
     int last_seq = -1;
+    int file_complete = 0;
 
     static Packet packet_buffer[MAX_PACKETS];
     static int received[MAX_PACKETS];
 
-    FILE *file = fopen(
-        "received_sr.txt",
-        "wb"
-    );
+    FILE *file = fopen("outputs/received_sr.txt", "wb");
 
     if (file == NULL) {
         printf("Could not create received_sr.txt\n");
@@ -55,8 +57,7 @@ int main() {
     struct sockaddr_in server_addr;
     struct sockaddr_in client_addr;
 
-    socklen_t client_len =
-        sizeof(client_addr);
+    socklen_t client_len = sizeof(client_addr);
 
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(8080);
@@ -76,9 +77,7 @@ int main() {
         return 1;
     }
 
-    printf(
-        "Selective Repeat receiver waiting...\n\n"
-    );
+    printf("Selective Repeat receiver waiting...\n\n");
 
     while (1) {
 
@@ -95,6 +94,23 @@ int main() {
 
         if (n < 0) {
             continue;
+        }
+
+        if (packet.seq == FIN_SEQ) {
+
+            int fin_ack = FIN_SEQ;
+
+            sendto(
+                sockfd,
+                &fin_ack,
+                sizeof(fin_ack),
+                0,
+                (struct sockaddr *)&client_addr,
+                client_len
+            );
+
+            printf("FIN received. FIN_ACK sent.\n");
+            break;
         }
 
         if (
@@ -124,20 +140,30 @@ int main() {
 
             int ack = packet.seq;
 
-            sendto(
-                sockfd,
-                &ack,
-                sizeof(ack),
-                0,
-                (struct sockaddr *)&client_addr,
-                client_len
-            );
+            if (should_drop(ACK_LOSS)) {
 
-            printf(
-                "Duplicate packet %d. ACK%d resent.\n",
-                packet.seq,
-                ack
-            );
+                printf(
+                    "Channel emulator: ACK%d dropped.\n\n",
+                    ack
+                );
+            }
+            else {
+
+                sendto(
+                    sockfd,
+                    &ack,
+                    sizeof(ack),
+                    0,
+                    (struct sockaddr *)&client_addr,
+                    client_len
+                );
+
+                printf(
+                    "Duplicate packet %d. ACK%d resent.\n\n",
+                    packet.seq,
+                    ack
+                );
+            }
 
             continue;
         }
@@ -172,16 +198,26 @@ int main() {
 
             int ack = packet.seq;
 
-            sendto(
-                sockfd,
-                &ack,
-                sizeof(ack),
-                0,
-                (struct sockaddr *)&client_addr,
-                client_len
-            );
+            if (should_drop(ACK_LOSS)) {
 
-            printf("Sent ACK%d\n", ack);
+                printf(
+                    "Channel emulator: ACK%d dropped.\n",
+                    ack
+                );
+            }
+            else {
+
+                sendto(
+                    sockfd,
+                    &ack,
+                    sizeof(ack),
+                    0,
+                    (struct sockaddr *)&client_addr,
+                    client_len
+                );
+
+                printf("Sent ACK%d\n", ack);
+            }
 
             while (
                 base < MAX_PACKETS &&
@@ -219,19 +255,23 @@ int main() {
         }
 
         if (
+            !file_complete &&
             last_seq != -1 &&
             base > last_seq
         ) {
-            break;
+
+            file_complete = 1;
+
+            printf(
+                "All file data received. Waiting for sender to finish...\n\n"
+            );
         }
     }
 
     fclose(file);
     close(sockfd);
 
-    printf(
-        "Selective Repeat file received successfully.\n"
-    );
+    printf("Selective Repeat receiver stopped.\n");
 
     return 0;
 }

@@ -13,6 +13,8 @@
 #define MAX_PACKETS 1000
 #define RETRANSMIT_TIMEOUT 5
 #define PACKET_LOSS 0.20
+#define CORRUPTION_RATE 0.10
+#define FIN_SEQ -1
 
 typedef struct {
     int seq;
@@ -42,7 +44,7 @@ int main() {
 
     int total_packets = 0;
 
-    FILE *file = fopen("input.txt", "rb");
+    FILE *file = fopen("test_data/input.txt", "rb");
 
     if (file == NULL) {
         printf("Could not open input.txt\n");
@@ -87,7 +89,8 @@ int main() {
 
     printf("Total packets: %d\n", total_packets);
     printf("Window size: %d\n", WINDOW_SIZE);
-    printf("Packet loss: %.0f%%\n\n", PACKET_LOSS * 100);
+    printf("Packet loss: %.0f%%\n", PACKET_LOSS * 100);
+    printf("Corruption rate: %.0f%%\n\n", CORRUPTION_RATE * 100);
 
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -139,9 +142,24 @@ int main() {
                 }
                 else {
 
+                    Packet send_packet = packets[i];
+
+                    if (
+                        should_corrupt(CORRUPTION_RATE) &&
+                        send_packet.data_len > 0
+                    ) {
+
+                        send_packet.data[0] ^= 1;
+
+                        printf(
+                            "Channel emulator: packet %d corrupted.\n",
+                            i
+                        );
+                    }
+
                     sendto(
                         sockfd,
-                        &packets[i],
+                        &send_packet,
                         sizeof(Packet),
                         0,
                         (struct sockaddr *)&receiver_addr,
@@ -151,7 +169,7 @@ int main() {
                     printf(
                         "Sent packet %d (%d bytes)\n",
                         i,
-                        packets[i].data_len
+                        send_packet.data_len
                     );
                 }
 
@@ -179,11 +197,7 @@ int main() {
 
             if (!acked[ack]) {
                 acked[ack] = 1;
-
-                printf(
-                    "Received ACK%d\n",
-                    ack
-                );
+                printf("Received ACK%d\n", ack);
             }
         }
 
@@ -211,9 +225,24 @@ int main() {
                 }
                 else {
 
+                    Packet resend_packet = packets[i];
+
+                    if (
+                        should_corrupt(CORRUPTION_RATE) &&
+                        resend_packet.data_len > 0
+                    ) {
+
+                        resend_packet.data[0] ^= 1;
+
+                        printf(
+                            "Channel emulator: retransmitted packet %d corrupted.\n",
+                            i
+                        );
+                    }
+
                     sendto(
                         sockfd,
-                        &packets[i],
+                        &resend_packet,
                         sizeof(Packet),
                         0,
                         (struct sockaddr *)&receiver_addr,
@@ -248,11 +277,49 @@ int main() {
         }
     }
 
+    Packet fin_packet;
+    memset(&fin_packet, 0, sizeof(fin_packet));
+
+    fin_packet.seq = FIN_SEQ;
+
+    int fin_ack_received = 0;
+
+    while (!fin_ack_received) {
+
+        sendto(
+            sockfd,
+            &fin_packet,
+            sizeof(fin_packet),
+            0,
+            (struct sockaddr *)&receiver_addr,
+            sizeof(receiver_addr)
+        );
+
+        printf("FIN sent. Waiting for FIN_ACK...\n");
+
+        int ack;
+
+        int n = recvfrom(
+            sockfd,
+            &ack,
+            sizeof(ack),
+            0,
+            (struct sockaddr *)&receiver_addr,
+            &addr_len
+        );
+
+        if (n > 0 && ack == FIN_SEQ) {
+            printf("FIN_ACK received.\n");
+            fin_ack_received = 1;
+        }
+        else {
+            printf("FIN_ACK timeout. Sending FIN again...\n");
+        }
+    }
+
     close(sockfd);
 
-    printf(
-        "Selective Repeat file transfer completed.\n"
-    );
+    printf("Selective Repeat file transfer completed.\n");
 
     return 0;
 }

@@ -1,0 +1,30 @@
+# Compiled files
+build/
+*.o
+
+# Generated executables
+src/sender
+src/receiver
+src/gbn_sender
+src/gbn_receiver
+src/sr_sender
+src/sr_receiver
+src/sw_exp_sender
+src/sw_exp_receiver
+src/gbn_exp_sender
+src/gbn_exp_receiver
+src/sr_exp_sender
+src/sr_exp_receiver
+
+# Generated received files
+src/received*.txt
+
+# Editor backup files
+*.save
+*.save.*
+*.swp
+*~
+
+# Python cache
+__pycache__/
+*.pyc

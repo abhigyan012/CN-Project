@@ -1,0 +1,325 @@
+STOP-AND-WAIT PERFORMANCE TEST
+
+Packet Loss = 0%
+
+Run 1:
+Send attempts = 109
+Retransmissions = 0
+Transfer time = 0.048 s
+Goodput = 9269.452 kbps
+
+Run 2:
+Send attempts = 109
+Retransmissions = 0
+Transfer time = 0.045 s
+Goodput = 9938.083 kbps
+
+Run 3:
+Send attempts = 109
+Retransmissions = 0
+Transfer time = 0.053 s
+Goodput = 8388.838 kbps
+
+Average:
+Send attempts = 109
+Retransmissions = 0
+Transfer time = 0.049 s
+Goodput = 9198.791 kbps
+
+
+Packet Loss = 5%
+
+Run 1:
+Send attempts = 115
+Retransmissions = 6
+Transfer time = 6.283 s
+Goodput = 70.763 kbps
+
+Run 2:
+Send attempts = 117
+Retransmissions = 8
+Transfer time = 8.328 s
+Goodput = 53.387 kbps
+
+Run 3:
+Send attempts = 117
+Retransmissions = 8
+Transfer time = 8.209 s
+Goodput = 54.161 kbps
+
+Average:
+Send attempts = 116.33
+Retransmissions = 7.33
+Transfer time = 7.607 s
+Goodput = 59.437 kbps
+
+
+Packet Loss = 10%
+
+Run 1:
+Send attempts = 120
+Retransmissions = 11
+Transfer time = 10.502 s
+Goodput = 42.335 kbps
+
+Run 2:
+Send attempts = 120
+Retransmissions = 11
+Transfer time = 11.399 s
+Goodput = 39.004 kbps
+
+Run 3:
+Send attempts = 122
+Retransmissions = 13
+Transfer time = 13.305 s
+Goodput = 33.416 kbps
+
+Average:
+Send attempts = 120.67
+Retransmissions = 11.67
+Transfer time = 11.735 s
+Goodput = 38.252 kbps
+
+
+Packet Loss = 20%
+
+Run 1:
+Send attempts = 146
+Retransmissions = 37
+Transfer time = 37.295 s
+Goodput = 11.921 kbps
+
+Run 2:
+Send attempts = 143
+Retransmissions = 34
+Transfer time = 34.317 s
+Goodput = 12.956 kbps
+
+Run 3:
+Send attempts = 129
+Retransmissions = 20
+Transfer time = 20.677 s
+Goodput = 21.502 kbps
+
+Average:
+Send attempts = 139.33
+Retransmissions = 30.33
+Transfer time = 30.763 s
+Goodput = 15.460 kbps
+
+
+
+GO-BACK-N PERFORMANCE TEST
+
+Packet Loss = 0%
+
+Run 1:
+Send attempts = 109
+Retransmissions = 0
+Transfer time = 0.033 s
+Goodput = 13379.476 kbps
+
+Run 2:
+Send attempts = 109
+Retransmissions = 0
+Transfer time = 0.030 s
+Goodput = 14584.222 kbps
+
+Run 3:
+Send attempts = 109
+Retransmissions = 0
+Transfer time = 0.032 s
+Goodput = 13875.105 kbps
+
+Average:
+Send attempts = 109
+Retransmissions = 0
+Transfer time = 0.032 s
+Goodput = 13946.268 kbps
+
+Packet Loss = 5%
+
+Run 1:
+Send attempts = 157
+Retransmissions = 48
+Transfer time = 12.567 s
+Goodput = 35.378 kbps
+
+Run 2:
+Send attempts = 141
+Retransmissions = 32
+Transfer time = 8.355 s
+Goodput = 53.215 kbps
+
+Run 3:
+Send attempts = 132
+Retransmissions = 23
+Transfer time = 6.258 s
+Goodput = 71.044 kbps
+
+Average:
+Send attempts = 143.33
+Retransmissions = 34.33
+Transfer time = 9.060 s
+Goodput = 53.212 kbps
+
+Packet Loss = 10%
+
+Run 1:
+Send attempts = 161
+Retransmissions = 52
+Transfer time = 13.562 s
+Goodput = 32.783 kbps
+
+Run 2:
+Send attempts = 145
+Retransmissions = 36
+Transfer time = 9.273 s
+Goodput = 47.943 kbps
+
+Run 3:
+Send attempts = 133
+Retransmissions = 24
+Transfer time = 6.255 s
+Goodput = 71.075 kbps
+
+Average:
+Send attempts = 146.33
+Retransmissions = 37.33
+Transfer time = 9.697 s
+Goodput = 50.600 kbps
+
+Packet Loss = 20%
+
+Run 1:
+Send attempts = 235
+Retransmissions = 126
+Transfer time = 31.959 s
+Goodput = 13.912 kbps
+
+Run 2:
+Send attempts = 205
+Retransmissions = 96
+Transfer time = 24.918 s
+Goodput = 17.843 kbps
+
+Run 3:
+Send attempts = 210
+Retransmissions = 101
+Transfer time = 26.655 s
+Goodput = 16.680 kbps
+
+Average:
+Send attempts = 216.67
+Retransmissions = 107.67
+Transfer time = 27.844 s
+Goodput = 16.145 kbps
+
+
+
+SELECTIVE REPEAT PERFORMANCE TEST
+
+Packet Loss = 0%
+
+Run 1:
+Send attempts = 109
+Retransmissions = 0
+Transfer time = 0.038 s
+Goodput = 11616.544 kbps
+
+Run 2:
+Send attempts = 109
+Retransmissions = 0
+Transfer time = 0.037 s
+Goodput = 11888.654 kbps
+
+Run 3:
+Send attempts = 109
+Retransmissions = 0
+Transfer time = 0.036 s
+Goodput = 12224.361 kbps
+
+Average:
+Send attempts = 109
+Retransmissions = 0
+Transfer time = 0.037 s
+Goodput = 11909.853 kbps
+
+
+Packet Loss = 5%
+
+Run 1:
+Send attempts = 117
+Retransmissions = 8
+Transfer time = 7.032 s
+Goodput = 63.221 kbps
+
+Run 2:
+Send attempts = 114
+Retransmissions = 5
+Transfer time = 3.473 s
+Goodput = 128.024 kbps
+
+Run 3:
+Send attempts = 117
+Retransmissions = 8
+Transfer time = 7.873 s
+Goodput = 56.473 kbps
+
+Average:
+Send attempts = 116.00
+Retransmissions = 7.00
+Transfer time = 6.126 s
+Goodput = 82.573 kbps
+
+Packet Loss = 10%
+
+Run 1:
+Send attempts = 122
+Retransmissions = 13
+Transfer time = 9.827 s
+Goodput = 45.244 kbps
+
+Run 2:
+Send attempts = 120
+Retransmissions = 11
+Transfer time = 6.318 s
+Goodput = 70.365 kbps
+
+Run 3:
+Send attempts = 120
+Retransmissions = 11
+Transfer time = 9.115 s
+Goodput = 48.776 kbps
+
+Average:
+Send attempts = 120.67
+Retransmissions = 11.67
+Transfer time = 8.420 s
+Goodput = 54.795 kbps
+
+Packet Loss = 20%
+
+Run 1:
+Send attempts = 137
+Retransmissions = 28
+Transfer time = 16.146 s
+Goodput = 27.536 kbps
+
+Run 2:
+Send attempts = 144
+Retransmissions = 35
+Transfer time = 18.196 s
+Goodput = 24.434 kbps
+
+Run 3:
+Send attempts = 131
+Retransmissions = 22
+Transfer time = 15.484 s
+Goodput = 28.714 kbps
+
+Average:
+Send attempts = 137.33
+Retransmissions = 28.33
+Transfer time = 16.609 s
+Goodput = 26.895 kbps

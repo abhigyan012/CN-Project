@@ -39,7 +39,7 @@ int main() {
     struct sockaddr_in receiver_addr;
     socklen_t addr_len = sizeof(receiver_addr);
 
-    FILE *file = fopen("input.txt", "rb");
+    FILE *file = fopen("test_data/input.txt", "rb");
 
     if (file == NULL) {
         printf("Could not open input.txt\n");

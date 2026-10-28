@@ -4,10 +4,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-#include "../include/channel.h"
-
 #define DATA_SIZE 512
-#define ACK_LOSS 0.20
 
 typedef struct {
     int seq;
@@ -33,20 +30,22 @@ int main() {
 
     Packet packet;
 
-    struct sockaddr_in server_addr, client_addr;
+    struct sockaddr_in server_addr;
+    struct sockaddr_in client_addr;
+
     socklen_t client_len = sizeof(client_addr);
 
-    FILE *file = fopen("received.txt", "wb");
+    FILE *file = fopen("outputs/received_gbn_exp.txt", "wb");
 
     if (file == NULL) {
-        printf("Could not create received.txt\n");
+        printf("Could not create output file\n");
         return 1;
     }
 
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 
     if (sockfd < 0) {
-        printf("Socket creation failed.\n");
+        printf("Socket creation failed\n");
         fclose(file);
         return 1;
     }
@@ -56,27 +55,25 @@ int main() {
     server_addr.sin_addr.s_addr = INADDR_ANY;
 
     if (bind(
-            sockfd,
-            (struct sockaddr *)&server_addr,
-            sizeof(server_addr)
-        ) < 0) {
+        sockfd,
+        (struct sockaddr *)&server_addr,
+        sizeof(server_addr)
+    ) < 0) {
 
-        printf("Bind failed.\n");
-
+        printf("Bind failed\n");
         fclose(file);
         close(sockfd);
-
         return 1;
     }
 
-    printf("Receiver waiting for file...\n\n");
+    printf("Go-Back-N experiment receiver ready...\n");
 
     while (1) {
 
         int n = recvfrom(
             sockfd,
             &packet,
-            sizeof(packet),
+            sizeof(Packet),
             0,
             (struct sockaddr *)&client_addr,
             &client_len
@@ -86,31 +83,19 @@ int main() {
             continue;
         }
 
-        unsigned int calculated_checksum =
+        unsigned int checksum =
             calculate_checksum(
                 packet.data,
                 packet.data_len
             );
 
-        if (calculated_checksum != packet.checksum) {
-
-            printf(
-                "Corrupted packet %d detected!\n",
-                packet.seq
-            );
-
-            printf(
-                "Expected checksum: %u, Calculated checksum: %u\n\n",
-                packet.checksum,
-                calculated_checksum
-            );
-
+        if (checksum != packet.checksum) {
             continue;
         }
 
         if (packet.seq == expected_seq) {
 
-            size_t written = fwrite(
+            fwrite(
                 packet.data,
                 1,
                 packet.data_len,
@@ -119,43 +104,7 @@ int main() {
 
             fflush(file);
 
-            printf(
-                "Received packet %d (%d bytes)\n",
-                packet.seq,
-                packet.data_len
-            );
-
-            printf(
-                "Checksum verified: %u\n",
-                packet.checksum
-            );
-
-            printf(
-                "Written to file: %zu bytes\n",
-                written
-            );
-
-            expected_seq = 1 - expected_seq;
-        }
-        else {
-
-            printf(
-                "Duplicate packet %d ignored.\n",
-                packet.seq
-            );
-        }
-
-        int ack = packet.seq;
-
-        if (should_drop(ACK_LOSS)) {
-
-            printf(
-                "Channel emulator: ACK%d dropped.\n\n",
-                ack
-            );
-
-        }
-        else {
+            int ack = packet.seq;
 
             sendto(
                 sockfd,
@@ -166,18 +115,31 @@ int main() {
                 client_len
             );
 
-            printf("Sent ACK%d\n\n", ack);
-        }
+            expected_seq++;
 
-        if (packet.is_last && packet.seq != expected_seq) {
-            break;
+            if (packet.is_last) {
+                break;
+            }
+        }
+        else {
+
+            int ack = expected_seq - 1;
+
+            sendto(
+                sockfd,
+                &ack,
+                sizeof(ack),
+                0,
+                (struct sockaddr *)&client_addr,
+                client_len
+            );
         }
     }
 
     fclose(file);
     close(sockfd);
 
-    printf("File received successfully.\n");
+    printf("GBN experiment transfer received.\n");
 
     return 0;
 }

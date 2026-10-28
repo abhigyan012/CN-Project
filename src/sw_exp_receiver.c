@@ -4,10 +4,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-#include "../include/channel.h"
-
 #define DATA_SIZE 512
-#define ACK_LOSS 0.20
 
 typedef struct {
     int seq;
@@ -33,20 +30,22 @@ int main() {
 
     Packet packet;
 
-    struct sockaddr_in server_addr, client_addr;
+    struct sockaddr_in server_addr;
+    struct sockaddr_in client_addr;
+
     socklen_t client_len = sizeof(client_addr);
 
-    FILE *file = fopen("received_gbn.txt", "wb");
+    FILE *file = fopen("outputs/received_sw_exp.txt", "wb");
 
     if (file == NULL) {
-        printf("Could not create received_gbn.txt\n");
+        printf("Could not create output file\n");
         return 1;
     }
 
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 
     if (sockfd < 0) {
-        printf("Socket creation failed.\n");
+        printf("Socket creation failed\n");
         fclose(file);
         return 1;
     }
@@ -61,15 +60,13 @@ int main() {
         sizeof(server_addr)
     ) < 0) {
 
-        printf("Bind failed.\n");
-
+        printf("Bind failed\n");
         fclose(file);
         close(sockfd);
-
         return 1;
     }
 
-    printf("Go-Back-N receiver waiting...\n\n");
+    printf("Stop-and-Wait experiment receiver ready...\n\n");
 
     while (1) {
 
@@ -86,19 +83,17 @@ int main() {
             continue;
         }
 
-        unsigned int calculated_checksum =
+        unsigned int checksum =
             calculate_checksum(
                 packet.data,
                 packet.data_len
             );
 
-        if (calculated_checksum != packet.checksum) {
-
+        if (checksum != packet.checksum) {
             printf(
-                "Corrupted packet %d discarded.\n",
+                "Corrupted packet %d ignored\n",
                 packet.seq
             );
-
             continue;
         }
 
@@ -113,53 +108,21 @@ int main() {
 
             fflush(file);
 
-            printf(
-                "Accepted packet %d (%d bytes)\n",
-                packet.seq,
-                packet.data_len
-            );
-
-            expected_seq++;
-        }
-        else {
-
-            printf(
-                "Out-of-order packet %d discarded. Expected %d\n",
-                packet.seq,
-                expected_seq
-            );
+            expected_seq = 1 - expected_seq;
         }
 
-        int ack = expected_seq - 1;
+        int ack = packet.seq;
 
-        if (should_drop(ACK_LOSS)) {
+        sendto(
+            sockfd,
+            &ack,
+            sizeof(ack),
+            0,
+            (struct sockaddr *)&client_addr,
+            client_len
+        );
 
-            printf(
-                "Channel emulator: cumulative ACK%d dropped.\n\n",
-                ack
-            );
-        }
-        else {
-
-            sendto(
-                sockfd,
-                &ack,
-                sizeof(ack),
-                0,
-                (struct sockaddr *)&client_addr,
-                client_len
-            );
-
-            printf(
-                "Sent cumulative ACK%d\n\n",
-                ack
-            );
-        }
-
-        if (
-            packet.is_last &&
-            packet.seq == expected_seq - 1
-        ) {
+        if (packet.is_last) {
             break;
         }
     }
@@ -167,9 +130,7 @@ int main() {
     fclose(file);
     close(sockfd);
 
-    printf(
-        "Go-Back-N file received successfully.\n"
-    );
+    printf("Experiment transfer received.\n");
 
     return 0;
 }
