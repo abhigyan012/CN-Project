@@ -72,7 +72,7 @@ int main() {
     timeout.tv_sec = 1;
     timeout.tv_usec = 0;
 
-// timeout counter 
+// timeout structure
     setsockopt(
         sockfd,
         SOL_SOCKET,
@@ -86,6 +86,8 @@ int main() {
     receiver_addr.sin_addr.s_addr =
         inet_addr("127.0.0.1");
 
+
+//timeout counter (decides the time)
     struct timeval start_time;
     struct timeval end_time;
 
