@@ -72,6 +72,7 @@ int main() {
     timeout.tv_sec = 1;
     timeout.tv_usec = 0;
 
+// timeout counter 
     setsockopt(
         sockfd,
         SOL_SOCKET,
