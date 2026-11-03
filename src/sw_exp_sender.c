@@ -11,6 +11,7 @@
 #define DATA_SIZE 512
 #define PACKET_LOSS 0.20
 
+// header
 typedef struct {
     int seq;
     int data_len;
