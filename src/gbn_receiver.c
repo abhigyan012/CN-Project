@@ -164,6 +164,8 @@ int main() {
         }
     }
 
+//output
+
     fclose(file);
     close(sockfd);
 
