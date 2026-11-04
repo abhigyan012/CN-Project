@@ -113,7 +113,7 @@ int main() {
         ) {
             continue;
         }
-
+// checksum 
         unsigned int checksum =
             calculate_checksum(
                 packet.data,
